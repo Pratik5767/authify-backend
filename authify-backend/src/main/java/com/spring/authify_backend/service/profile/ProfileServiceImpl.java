@@ -1,12 +1,13 @@
-package com.spring.authify_backend.service;
+package com.spring.authify_backend.service.profile;
 
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.spring.authify_backend.entity.User;
+import com.spring.authify_backend.entity.UserEntity;
 import com.spring.authify_backend.io.ProfileRequest;
 import com.spring.authify_backend.io.ProfileResponse;
 import com.spring.authify_backend.repository.UserRepository;
@@ -18,10 +19,11 @@ import lombok.RequiredArgsConstructor;
 public class ProfileServiceImpl implements IProfileService {
 
 	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
 
 	@Override
 	public ProfileResponse createProfile(ProfileRequest request) {
-		User newProfile = convertToEntity(request);
+		UserEntity newProfile = convertToEntity(request);
 		if (!userRepository.existsByEmail(request.getEmail())) {
 			newProfile = userRepository.save(newProfile);			
 			return convertToProfileResponse(newProfile);
@@ -30,7 +32,7 @@ public class ProfileServiceImpl implements IProfileService {
 		throw new ResponseStatusException(HttpStatus.CONFLICT, "Email alrealy exists");
 	}
 
-	private ProfileResponse convertToProfileResponse(User newProfile) {
+	private ProfileResponse convertToProfileResponse(UserEntity newProfile) {
 		return ProfileResponse.builder()
 				.name(newProfile.getName())
 				.email(newProfile.getEmail())
@@ -39,12 +41,12 @@ public class ProfileServiceImpl implements IProfileService {
 				.build();
 	}
 
-	private User convertToEntity(ProfileRequest request) {
-		return User.builder()
+	private UserEntity convertToEntity(ProfileRequest request) {
+		return UserEntity.builder()
 			.email(request.getEmail())
 			.userId(UUID.randomUUID().toString())
 			.name(request.getName())
-			.password(request.getPassword())
+			.password(passwordEncoder.encode(request.getPassword()))
 			.isAccountVerified(false)
 			.resetOtp(null)
 			.resetOtpExpireAt(0L)
