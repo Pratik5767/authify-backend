@@ -6,5 +6,7 @@ import com.spring.authify_backend.io.ProfileResponse;
 public interface IProfileService {
 	
 	ProfileResponse createProfile(ProfileRequest request);
+	
+	ProfileResponse getProfile(String email);
 
 }
