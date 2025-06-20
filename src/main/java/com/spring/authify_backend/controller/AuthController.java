@@ -28,6 +28,7 @@ import com.spring.authify_backend.service.auth.AppUserDetailsService;
 import com.spring.authify_backend.service.profile.IProfileService;
 import com.spring.authify_backend.utils.JwtUtils;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -111,11 +112,18 @@ public class AuthController {
 		if (request.get("otp").toString() == null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing details");
 		}
-		
+
 		try {
 			profileService.verifyOtp(email, request.get("otp").toString());
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 		}
+	}
+
+	@PostMapping("/logout")
+	public ResponseEntity<?> logOut(HttpServletResponse response) {
+		ResponseCookie cookie = ResponseCookie.from("jwt", "").httpOnly(true).secure(false).path("/").maxAge(0)
+				.sameSite("Strict").build();
+		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body("Logged out successfully");
 	}
 }
